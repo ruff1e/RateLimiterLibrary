@@ -1,7 +1,7 @@
 from fastapi_ratelimit.backends.redis import RedisBackend
 from fastapi_ratelimit.algorithms.fixed_window import fixed_window
 from fastapi import Request, HTTPException
-
+import functools
 
 
 
@@ -9,6 +9,7 @@ def rate_limit(limit: int, window: int, algorithm=fixed_window, host="localhost"
     backend = RedisBackend(host=host, port=port, db=db)
 
     def decorator(func):
+        @functools.wraps(func)
         async def wrapper(request: Request, **kwargs):
             ip = request.client.host
 
