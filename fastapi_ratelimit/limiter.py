@@ -5,20 +5,15 @@ from fastapi import Request, HTTPException
 
 
 
+def rate_limit(limit: int, window: int, algorithm=fixed_window, host="localhost", port=6379, db=0):
+    backend = RedisBackend(host=host, port=port, db=db)
 
-def rate_limit(limit: int, window: int):
     def decorator(func):
         async def wrapper(request: Request, **kwargs):
-            
-            host = request.client.host
-            backend = RedisBackend(host=host, port=6379, db=0)
+            ip = request.client.host
 
-            if not backend.is_allowed(key=host, limit=limit, window=window, algorithm=fixed_window):
-                raise HTTPException(
-                    status_code=429,
-                    detail="Rate Limit Exceeded"
-                )
-
+            if not backend.is_allowed(key=ip, limit=limit, window=window, algorithm=algorithm):
+                raise HTTPException(status_code=429, detail="Rate Limit Exceeded")
 
             return await func(request, **kwargs)
         return wrapper
