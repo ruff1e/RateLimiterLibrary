@@ -1,4 +1,11 @@
 import redis
+from fastapi_ratelimit.backends.base import BaseBackend
 
 
-client = redis.Redis(host="localhost", port=6379, db=0)
+class RedisBackend(BaseBackend):
+
+    def __init__(self, host, port, db):
+        self.client = redis.Redis(host=host, port=port, db=db)
+
+    def is_allowed(self, key: str, limit: int, window: int, algorithm) -> bool:
+        return algorithm(self.client, key, limit, window)
